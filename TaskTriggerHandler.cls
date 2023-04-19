@@ -3,11 +3,11 @@ public class TaskTriggerHandler {
         try{
             Map<Id, String> AccountIdVsDescription = new Map<Id, String>();
             
-            Boolean hasCustomPermission = FeatureManagement.checkPermission('CQ_Account_Admin');
+             List<PermissionSetAssignment> perAssignments = [SELECT AssigneeId, PermissionSet.Name FROM PermissionSetAssignment WHERE   PermissionSet.Name = 'CQ_Account_Admin' AND AssigneeId=:UserInfo.getUserId()];
 
             for(Task each : newRecords){
                 
-                if(each.Status == 'Completed' && hasCustomPermission){
+                if(each.Status == 'Completed' && !perAssignments.isEmpty()){
                     if(!AccountIdVsDescription.containsKey(each.WhatId)){
                         AccountIdVsDescription.put(each.WhatId, each.Description);
                     }else{
@@ -15,7 +15,7 @@ public class TaskTriggerHandler {
                         exsitingDescription = exsitingDescription + ' ' + each.Description;
                          AccountIdVsDescription.put(each.WhatId, exsitingDescription);
                     }
-                }else if(each.Status == 'Completed' && !hasCustomPermission){
+                }else if(each.Status == 'Completed' && perAssignments.isEmpty()){
                     each.addError('Only CQ_Account_Admin user can update  staus completed ');
                 }   
                 
